@@ -160,29 +160,36 @@ namespace CuBlurHash
 
         hash += encode_int(size_flag, 1);
 
-        // TODO: 1x1 component
-
         std::cout << "Calculating max value..." << std::endl;
 
+
+        float max_value;
         // encode max value
-        float max_component = thrust::transform_reduce(
+        if(x_components != 1 || y_components != 1)
+        {
+            float max_component = thrust::transform_reduce(
             factors.begin(),
             factors.end(),
             max_rgbf_component(),
             0.0f,
             thrust::maximum<float>()
             );
-        std::cout << "Max component: " << max_component << std::endl;
+            std::cout << "Max component: " << max_component << std::endl;
 
-        int quantised_max_component = (int)fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
-        float max_value = (quantised_max_component + 1) / 166.0f;
-
-        std::cout << "Quantised max value: " << quantised_max_component << std::endl;
-        std::cout << "Max value: " << max_value << std::endl;
-
-        std::cout << "Encoding max value..." << std::endl;
-
-        hash += encode_int(quantised_max_component, 1);
+            int quantised_max_component = (int)fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
+            max_value = (quantised_max_component + 1) / 166.0f;
+            std::cout << "Max value: " << max_value << std::endl;
+            std::cout << "Quantised max value: " << quantised_max_component << std::endl;
+            
+            std::cout << "Encoding quantised max value..." << std::endl;
+            hash += encode_int(quantised_max_component, 1);
+        }
+        else 
+        {
+            max_value = 1.0f;
+            std::cout << "Encoding max value..." << std::endl;
+            hash += encode_int(0, 1);
+        }
 
         std::cout << "Encoding dc part..." << std::endl;
         // encode factors
