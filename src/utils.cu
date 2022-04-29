@@ -14,9 +14,11 @@ namespace CuBlurHash
 
     __device__ __host__ uint8_t linear_to_sRGB(float value)
     {
-        if (value <= 0.0031308f)
-            return (uint8_t)(255.0f * 12.92f * value);
-        return (uint8_t)(255.0f * (1.055f * powf(value, 1.0f / 2.4f) - 0.055f));
+        float v = fmaxf(0.0f, fminf(1.0f, value));
+
+        if (v <= 0.0031308f)
+            return (uint8_t)(255.0f * 12.92f * v + 0.5f);
+        return (uint8_t)(255.0f * (1.055f * powf(v, 1.0f / 2.4f) - 0.055f) + 0.5f);
     }
 
     __device__ __host__ RGBi linear_to_sRGB(RGBf value)

@@ -2,6 +2,9 @@
 #include <thrust/transform_reduce.h>
 #include <thrust/functional.h>
 #include <vector>
+#include <algorithm>
+#include <numeric>
+#include <execution>
 
 #include "../../include/encodes/encode.cuh"
 #include "../../include/rgbxy.cuh"
@@ -17,7 +20,7 @@ namespace CuBlurHash
         int const& y_components,
         int const& width,
         int const& height,
-        thrust::host_vector<RGBXY> const& d_rgb_vector
+        thrust::device_vector<RGBXY> const& d_rgb_vector
         );
 
     std::string encode_factors(
@@ -47,18 +50,13 @@ namespace CuBlurHash
 
         std::cout << "Image size: " << width << "x" << height << std::endl;
 
-        for(int i = 0; i < h_rgb_vector.size(); i++)
-        {
-            std::cout << h_rgb_vector[i].x << " " << h_rgb_vector[i].y << " : " << (int)h_rgb_vector[i].rgb.r << " " << std::endl;
-        }
-
         std::cout << "Copying image to device..." << std::endl;
 
-        //thrust::device_vector<RGBXY> d_rgb_vector = h_rgb_vector;
+        thrust::device_vector<RGBXY> d_rgb_vector = h_rgb_vector;
 
         std::cout << "Getting factors..." << std::endl;
 
-        auto factors = get_factors(x_components, y_components, width, height, h_rgb_vector);
+        auto factors = get_factors(x_components, y_components, width, height, d_rgb_vector);
 
         std::cout << "Encoding factors..." << std::endl;
 
@@ -96,7 +94,7 @@ namespace CuBlurHash
         int const& y_component,
         int const& width,
         int const& height,
-        thrust::host_vector<RGBXY> const& d_rgb_vector
+        thrust::device_vector<RGBXY> const& d_rgb_vector
         )
     {
         RGBf result = thrust::transform_reduce(
@@ -118,19 +116,24 @@ namespace CuBlurHash
         int const& y_components,
         int const& width,
         int const& height,
-        thrust::host_vector<RGBXY> const& d_rgb_vector
+        thrust::device_vector<RGBXY> const& d_rgb_vector
         )
     {
         thrust::host_vector<RGBf> h_basis_vector(x_components * y_components);
 
-        for(int x = 0; x < x_components; ++x)
-        {
-            for(int y = 0; y < y_components; ++y)
+        std::vector<int> indexes = std::vector<int>(x_components * y_components);
+        std::iota(indexes.begin(), indexes.end(), 0);
+
+        std::for_each(
+            indexes.begin(),
+            indexes.end(),
+            [&](int const& index)
             {
-                int index = x * y_components + y;
-                h_basis_vector[index] = multiply_basis_function(x, y, width, height, d_rgb_vector);
-            }
-        }
+                int x_component = index % x_components;
+                int y_component = index / x_components;
+
+                h_basis_vector[index] = multiply_basis_function(x_component, y_component, width, height, d_rgb_vector);
+            });
 
         return h_basis_vector;
     }
@@ -169,8 +172,13 @@ namespace CuBlurHash
             0.0f,
             thrust::maximum<float>()
             );
-        int quantised_max_component = fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
+        std::cout << "Max component: " << max_component << std::endl;
+
+        int quantised_max_component = (int)fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
         float max_value = (quantised_max_component + 1) / 166.0f;
+
+        std::cout << "Quantised max value: " << quantised_max_component << std::endl;
+        std::cout << "Max value: " << max_value << std::endl;
 
         std::cout << "Encoding max value..." << std::endl;
 
