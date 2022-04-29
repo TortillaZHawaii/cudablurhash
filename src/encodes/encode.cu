@@ -17,7 +17,7 @@ namespace CuBlurHash
         int const& y_components,
         int const& width,
         int const& height,
-        thrust::device_vector<RGBXY> const& d_rgb_vector
+        thrust::host_vector<RGBXY> const& d_rgb_vector
         );
 
     std::string encode_factors(
@@ -45,13 +45,20 @@ namespace CuBlurHash
         int width = image.get_width();
         int height = image.get_height();
 
+        std::cout << "Image size: " << width << "x" << height << std::endl;
+
+        for(int i = 0; i < h_rgb_vector.size(); i++)
+        {
+            std::cout << h_rgb_vector[i].x << " " << h_rgb_vector[i].y << " : " << (int)h_rgb_vector[i].rgb.r << " " << std::endl;
+        }
+
         std::cout << "Copying image to device..." << std::endl;
 
-        thrust::device_vector<RGBXY> d_rgb_vector = h_rgb_vector;
+        //thrust::device_vector<RGBXY> d_rgb_vector = h_rgb_vector;
 
         std::cout << "Getting factors..." << std::endl;
 
-        auto factors = get_factors(x_components, y_components, width, height, d_rgb_vector);
+        auto factors = get_factors(x_components, y_components, width, height, h_rgb_vector);
 
         std::cout << "Encoding factors..." << std::endl;
 
@@ -89,7 +96,7 @@ namespace CuBlurHash
         int const& y_component,
         int const& width,
         int const& height,
-        thrust::device_vector<RGBXY> const& d_rgb_vector
+        thrust::host_vector<RGBXY> const& d_rgb_vector
         )
     {
         RGBf result = thrust::transform_reduce(
@@ -111,7 +118,7 @@ namespace CuBlurHash
         int const& y_components,
         int const& width,
         int const& height,
-        thrust::device_vector<RGBXY> const& d_rgb_vector
+        thrust::host_vector<RGBXY> const& d_rgb_vector
         )
     {
         thrust::host_vector<RGBf> h_basis_vector(x_components * y_components);

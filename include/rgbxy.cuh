@@ -8,10 +8,10 @@ namespace CuBlurHash
     struct RGBXY 
     {
         RGBi rgb;
-        uint8_t x;
-        uint8_t y;
+        int x;
+        int y;
 
         RGBXY() {}
-        RGBXY(RGBi rgb, uint8_t x, uint8_t y) : rgb(rgb), x(x), y(y) {}
+        RGBXY(RGBi rgb, int x, int y) : rgb(rgb), x(x), y(y) {}
     };
 }

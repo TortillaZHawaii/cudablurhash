@@ -5,18 +5,19 @@
 
 int main(int argc, const char **argv)
 {
-    if(argc != 4 && argc != 5)
-    {
-		std::cerr << "Usage: " << argv[0] << " x_components y_components imagefile [csvfile]" << std::endl;
-		return 1;
-	}
+    // if(argc != 4 && argc != 5)
+    // {
+	// 	std::cerr << "Usage: " << argv[0] << " x_components y_components imagefile [csvfile]" << std::endl;
+	// 	return 1;
+	// }
 
-    int x_components = atoi(argv[1]);
-    int y_components = atoi(argv[2]);
+    int x_components = 8;//atoi(argv[1]);
+    int y_components = 8;//atoi(argv[2]);
 
     std::cout << "Loading image..." << std::endl;
 
-    CuBlurHash::Image image = CuBlurHash::Image(argv[3]);
+    const char *filename = "../data/Lenna.png";//argv[3];
+    CuBlurHash::Image image = CuBlurHash::Image(filename);
 
     std::cout << "Image loaded." << std::endl;
 
