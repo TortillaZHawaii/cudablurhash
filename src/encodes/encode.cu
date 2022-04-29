@@ -39,13 +39,21 @@ namespace CuBlurHash
         int const& y_components
         )
     {
+        std::cout << "Getting image info..." << std::endl;
+
         auto h_rgb_vector = image.get_pixels();
         int width = image.get_width();
         int height = image.get_height();
 
+        std::cout << "Copying image to device..." << std::endl;
+
         thrust::device_vector<RGBXY> d_rgb_vector = h_rgb_vector;
 
+        std::cout << "Getting factors..." << std::endl;
+
         auto factors = get_factors(x_components, y_components, width, height, d_rgb_vector);
+
+        std::cout << "Encoding factors..." << std::endl;
 
         return encode_factors(x_components, y_components, factors);
     }
@@ -136,12 +144,15 @@ namespace CuBlurHash
     {
         std::string hash = std::string();
 
+        std::cout << "Encoding size..." << std::endl;
         // encode size
         int size_flag = (x_components - 1) + (y_components - 1) * 9;
 
         hash += encode_int(size_flag, 1);
 
         // TODO: 1x1 component
+
+        std::cout << "Calculating max value..." << std::endl;
 
         // encode max value
         float max_component = thrust::transform_reduce(
@@ -154,12 +165,16 @@ namespace CuBlurHash
         int quantised_max_component = fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
         float max_value = (quantised_max_component + 1) / 166.0f;
 
+        std::cout << "Encoding max value..." << std::endl;
+
         hash += encode_int(quantised_max_component, 1);
 
+        std::cout << "Encoding dc part..." << std::endl;
         // encode factors
         // encode dc
         hash += encode_int(encode_dc(factors[0]), 4);
 
+        std::cout << "Encoding ac part..." << std::endl;
         // encode ac
         for(int i = 1; i < factors.size(); ++i)
         {

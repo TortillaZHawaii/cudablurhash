@@ -14,10 +14,19 @@ int main(int argc, const char **argv)
     int x_components = atoi(argv[1]);
     int y_components = atoi(argv[2]);
 
+    std::cout << "Loading image..." << std::endl;
+
     CuBlurHash::Image image = CuBlurHash::Image(argv[3]);
+
+    std::cout << "Image loaded." << std::endl;
+
+    std::cout << "Encoding image..." << std::endl;
 
     std::string hash = CuBlurHash::encode_image(image, x_components, y_components);
 
+    std::cout << "Image encoded." << std::endl;
+
+    std::cout << "Hash: " << std::endl;
     std::cout << hash << std::endl;
 
     return 0;
