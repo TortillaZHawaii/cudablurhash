@@ -1,5 +1,8 @@
 #include <iostream>
+#include <cstdio>
+#include <ctime>
 
+#include "../include/csv/csv_logger.cuh"
 #include "../include/encodes/encode.cuh"
 #include "../include/image.cuh"
 
@@ -35,9 +38,25 @@ int main(int argc, const char **argv)
 
     std::cout << "Encoding image..." << std::endl;
 
+    std::clock_t start_time = std::clock();
+
     std::string hash = CuBlurHash::encode_image(image, x_components, y_components);
 
-    std::cout << "Image encoded." << std::endl;
+    std::clock_t end_time = std::clock();
+
+    int duration_ms = (end_time - start_time) * 1000 / CLOCKS_PER_SEC;
+
+    std::cout << "Image encoded in " << duration_ms << " ms." << std::endl;
+
+    if(argc == 5) 
+    {
+        std::string csv_file_path = std::string(argv[4]);
+        std::cout << "Writing encoder logs to " << csv_file_path << std::endl;
+
+        CuBlurHash::CsvLogger(csv_file_path, ">")
+            .log_encoding_results(std::string(filename), image, hash,
+                "Thrusted", x_components, y_components, duration_ms);
+    }
 
     std::cout << "Hash: " << std::endl;
     std::cout << hash << std::endl;

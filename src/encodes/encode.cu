@@ -42,23 +42,23 @@ namespace CuBlurHash
         int const& y_components
         )
     {
-        std::cout << "Getting image info..." << std::endl;
+        // std::cout << "Getting image info..." << std::endl;
 
         auto h_rgb_vector = image.get_pixels();
         int width = image.get_width();
         int height = image.get_height();
 
-        std::cout << "Image size: " << width << "x" << height << std::endl;
+        // std::cout << "Image size: " << width << "x" << height << std::endl;
 
-        std::cout << "Copying image to device..." << std::endl;
+        // std::cout << "Copying image to device..." << std::endl;
 
         thrust::device_vector<RGBXY> d_rgb_vector = h_rgb_vector;
 
-        std::cout << "Getting factors..." << std::endl;
+        // std::cout << "Getting factors..." << std::endl;
 
         auto factors = get_factors(x_components, y_components, width, height, d_rgb_vector);
 
-        std::cout << "Encoding factors..." << std::endl;
+        // std::cout << "Encoding factors..." << std::endl;
 
         return encode_factors(x_components, y_components, factors);
     }
@@ -154,13 +154,13 @@ namespace CuBlurHash
     {
         std::string hash = std::string();
 
-        std::cout << "Encoding size..." << std::endl;
+        // std::cout << "Encoding size..." << std::endl;
         // encode size
         int size_flag = (x_components - 1) + (y_components - 1) * 9;
 
         hash += encode_int(size_flag, 1);
 
-        std::cout << "Calculating max value..." << std::endl;
+        // std::cout << "Calculating max value..." << std::endl;
 
 
         float max_value;
@@ -174,29 +174,29 @@ namespace CuBlurHash
             0.0f,
             thrust::maximum<float>()
             );
-            std::cout << "Max component: " << max_component << std::endl;
+            // std::cout << "Max component: " << max_component << std::endl;
 
             int quantised_max_component = (int)fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
             max_value = (quantised_max_component + 1) / 166.0f;
-            std::cout << "Max value: " << max_value << std::endl;
-            std::cout << "Quantised max value: " << quantised_max_component << std::endl;
+            // std::cout << "Max value: " << max_value << std::endl;
+            // std::cout << "Quantised max value: " << quantised_max_component << std::endl;
             
-            std::cout << "Encoding quantised max value..." << std::endl;
+            // std::cout << "Encoding quantised max value..." << std::endl;
             hash += encode_int(quantised_max_component, 1);
         }
         else 
         {
             max_value = 1.0f;
-            std::cout << "Encoding max value..." << std::endl;
+            // std::cout << "Encoding max value..." << std::endl;
             hash += encode_int(0, 1);
         }
 
-        std::cout << "Encoding dc part..." << std::endl;
+        // std::cout << "Encoding dc part..." << std::endl;
         // encode factors
         // encode dc
         hash += encode_int(encode_dc(factors[0]), 4);
 
-        std::cout << "Encoding ac part..." << std::endl;
+        // std::cout << "Encoding ac part..." << std::endl;
         // encode ac
         for(int i = 1; i < factors.size(); ++i)
         {
