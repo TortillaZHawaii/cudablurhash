@@ -168,11 +168,11 @@ namespace CuBlurHash
         if(x_components != 1 || y_components != 1)
         {
             float max_component = thrust::transform_reduce(
-            factors.begin(),
-            factors.end(),
-            max_rgbf_component(),
-            0.0f,
-            thrust::maximum<float>()
+                factors.begin(),
+                factors.end(),
+                max_rgbf_component(),
+                0.0f,
+                thrust::maximum<float>()
             );
             // std::cout << "Max component: " << max_component << std::endl;
 
