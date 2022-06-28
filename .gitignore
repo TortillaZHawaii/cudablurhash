@@ -2,3 +2,5 @@ build
 .cache
 data/*
 *.csv
+file.txt
+*.ncu-rep
