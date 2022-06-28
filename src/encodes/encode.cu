@@ -30,7 +30,7 @@ namespace CuBlurHash
         );
 
     __host__ __device__ inline int encode_dc(RGBf const& rgb);
-    __host__ __device__ inline int encode_ac(RGBf const& rgb, float max_value);
+    __host__ __device__ inline int encode_ac(RGBf const& rgb, double max_value);
     std::string encode_int(
         int value,
         int length
@@ -82,7 +82,7 @@ namespace CuBlurHash
             return rgbf * get_basis(rgbxy.x, rgbxy.y);
         }
 
-        __host__ __device__ inline float get_basis(float const& x, float const& y) const
+        __host__ __device__ inline double get_basis(double const& x, double const& y) const
         {
             return cosf(M_PI * x_components * x / width)
                 * cosf(M_PI * y_components * y / height);
@@ -105,8 +105,8 @@ namespace CuBlurHash
             thrust::plus<RGBf>()
             );
 
-        float normalisation = (x_component == 0 && y_component == 0) ? 1.0f : 2.0f;
-        float scale = normalisation / (width * height);
+        double normalisation = (x_component == 0 && y_component == 0) ? 1.0 : 2.0;
+        double scale = normalisation / (width * height);
 
         return result * scale;
     }
@@ -138,11 +138,11 @@ namespace CuBlurHash
         return h_basis_vector;
     }
 
-    struct max_rgbf_component : public std::unary_function<RGBf, float>
+    struct max_rgbf_component : public std::unary_function<RGBf, double>
     {
-        __host__ __device__ float operator()(RGBf const& rgbf) const
+        __host__ __device__ double operator()(RGBf const& rgbf) const
         {
-            return fmaxf(fmaxf(fabsf(rgbf.r), fabsf(rgbf.g)), fabsf(rgbf.b));
+            return fmax(fmax(fabs(rgbf.r), fabs(rgbf.g)), fabs(rgbf.b));
         }
     };
 
@@ -163,21 +163,21 @@ namespace CuBlurHash
         // std::cout << "Calculating max value..." << std::endl;
 
 
-        float max_value;
+        double max_value;
         // encode max value
         if(x_components != 1 || y_components != 1)
         {
-            float max_component = thrust::transform_reduce(
+            double max_component = thrust::transform_reduce(
                 factors.begin(),
                 factors.end(),
                 max_rgbf_component(),
-                0.0f,
-                thrust::maximum<float>()
+                0.0,
+                thrust::maximum<double>()
             );
             // std::cout << "Max component: " << max_component << std::endl;
 
-            int quantised_max_component = (int)fmaxf(0, fminf(82, floorf(max_component * 166.0f - 0.5f)));
-            max_value = (quantised_max_component + 1) / 166.0f;
+            int quantised_max_component = (int)fmaxf(0, fminf(82, floorf(max_component * 166.0 - 0.5)));
+            max_value = (quantised_max_component + 1) / 166.0;
             // std::cout << "Max value: " << max_value << std::endl;
             // std::cout << "Quantised max value: " << quantised_max_component << std::endl;
             
@@ -186,7 +186,7 @@ namespace CuBlurHash
         }
         else 
         {
-            max_value = 1.0f;
+            max_value = 1.0;
             // std::cout << "Encoding max value..." << std::endl;
             hash += encode_int(0, 1);
         }
@@ -212,24 +212,24 @@ namespace CuBlurHash
         return rgbi.to_int();
     }
 
-    __host__ __device__ inline float signed_pow(float base, float exponent)
+    __host__ __device__ inline double signed_pow(double base, double exponent)
     {
-        return copysignf(powf(fabsf(base), exponent), base);
+        return copysign(pow(fabs(base), exponent), base);
     }
 
-    __host__ __device__ inline int encode_ac_part(float part, float max_value)
+    __host__ __device__ inline int encode_ac_part(double part, double max_value)
     {
-        return fmaxf(0,
-                fminf(18.0f,
-                    floorf(
-                        signed_pow(part / max_value, 0.5f)
-                        * 9.0f + 9.5f
+        return fmax(0,
+                fmin(18.0,
+                    floor(
+                        signed_pow(part / max_value, 0.5)
+                        * 9.0 + 9.5
                     )
                 )
             );
     }
 
-    __host__ __device__ inline int encode_ac(RGBf const& rgb, float max_value)
+    __host__ __device__ inline int encode_ac(RGBf const& rgb, double max_value)
     {
         int quant_r = encode_ac_part(rgb.r, max_value);
         int quant_g = encode_ac_part(rgb.g, max_value);

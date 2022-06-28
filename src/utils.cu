@@ -12,13 +12,13 @@ namespace CuBlurHash
     }
 
 
-    __device__ __host__ uint8_t linear_to_sRGB(float value)
+    __device__ __host__ uint8_t linear_to_sRGB(double value)
     {
-        float v = fmaxf(0.0f, fminf(1.0f, value));
+        double v = fmaxf(0.0, fminf(1.0, value));
 
-        if (v <= 0.0031308f)
-            return (uint8_t)(255.0f * 12.92f * v + 0.5f);
-        return (uint8_t)(255.0f * (1.055f * powf(v, 1.0f / 2.4f) - 0.055f) + 0.5f);
+        if (v <= 0.0031308)
+            return (uint8_t)(255.0 * 12.92 * v + 0.5);
+        return (uint8_t)(255.0 * (1.055 * powf(v, 1.0 / 2.4) - 0.055) + 0.5);
     }
 
     __device__ __host__ RGBi linear_to_sRGB(RGBf value)
@@ -31,13 +31,13 @@ namespace CuBlurHash
     }
 
 
-    __device__ __host__ float sRGB_to_linear(uint8_t value)
+    __device__ __host__ double sRGB_to_linear(uint8_t value)
     {
-        float v = (float)value / 255.0f;
+        double v = (double)value / 255.0;
 
-        if (v <= 0.04045f)
-            return v / 12.92f;
-        return powf((v + 0.055f) / 1.055f, 2.4f);
+        if (v <= 0.04045)
+            return v / 12.92;
+        return powf((v + 0.055) / 1.055, 2.4);
     }
 
     __device__ __host__ RGBf sRGB_to_linear(RGBi value)
